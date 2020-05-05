@@ -1,12 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>tallberg</title>
-</head>
-<body>
-    <h1>Hello.</h1>
-</body>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- <script src="https://kit.fontawesome.com/5375552044.js" crossorigin="anonymous"></script> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+      code {
+        padding: 3px;
+        margin: 5px 0;
+        border-radius: 5px;
+        display: block;
+      }
+      code.console {
+          background: rgb(45,10,36);
+          color: rgb(211,215,207);          
+      }
+      .header {
+        color: #ee6e73;
+        font-weight: 300;
+      }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col s12 l9">
+          <div id="git" class="section scrollspy">
+            <h2 class="header">Daily git headaches</h2>      
+            <h5>"Oh, noes! I commited to the wrong branch again"</h5>
+            <p>Reset to last commit and keep changes.</p>
+            <code class="console">$ git reset --soft HEAD~1</code>
+
+          </div>
+          <div id="umpalumpa" class="section scrollspy">
+            <h2 class="header">Umpalumpa dance moves</h2>      
+            <h5>"The robot"</h5>
+            <p>This is a complete classic for those who can’t dance. The Robot has been featured in films, television, and music videos. Best suited for those who love to make others laugh or lack foot coordination, the robotic motions of the arms and torso are sure to be a hit that everyone knows and loves. Next time you hear a hot hip-hop beat, give this move a try.</p>
+            <h5>"The moonwalk"</h5>
+            <p>When thinking of the moonwalk, one may immediately think of Michael Jackson. While Jackson perfected the move and convinced audiences that he truly was defying gravity, the King of Pop did not invent the move! Despite his debut of the move at Motown 25 in 1983, the moonwalk roots back to Cab Calloway in 1932. Many other artists showcased their own versions of the move prior to Jackson’s debut, but none hit it quite the way he did. Maybe you will! Next time you hit the floor, give this iconic move a spin!</p>
+            <h5>"The twist"</h5>
+            <p>Widely considered the first worldwide dance craze, Chubby Checker’s hit song “The Twist” took over airwaves and dancefloors in the 1960s. Still played at parties and celebrations, the Twist gathers groups together to groove their hips to the Swinging Sixties hit. It is a classic move that is not going away any time soon.</p>
+          </div>
+
+          <div id="leprechaun" class="section scrollspy">
+            <h2 class="header">Leprechaun space movies</h2>      
+            <h5>"Leprechaun in space" <a href="https://en.wikipedia.org/wiki/Leprechaun_4:_In_Space"><i class="material-icons">link</i></a></h5>
+            <p>In 2096, on a remote planet, the Leprechaun (who unknowingly is in space) attempts to court a princess named Zarina, in a nefarious plot to become king of her home planet. The two agree to marry, with each partner planning to kill the other after the wedding night in order to enjoy the marriage benefits (a peerage for the Leprechaun, the Leprechaun's gold and jewels for the princess) undisturbed.
+              A platoon of space marines arrive on the planet and kill the Leprechaun for interfering with mining operations. Lucky tries to steal gold but gets killed by the leprechaun with a lightsaber. A grenade explodes and kills the leprechaun, but he still comes back. Gloating over the victory, one of the marines, Kowalski, urinates on the Leprechaun's body. Unbeknownst to Kowalski, the Leprechaun's spirit travels up his urine stream and into his penis, where his presence manifests as gonorrhea. The marines return to their ship with the injured Zarina, whom they plan to return to her homeworld in order to establish positive diplomatic relations. The ship's commander, the cyborg Dr. Mittenhand, explains his plans to use Zarina's regenerative DNA to recreate his own body, which was mutilated in a failed experiment. Elsewhere on the ship, the Leprechaun violently emerges from Kowalski's penis after he is aroused during a sexual act. The marines hunt the Leprechaun, who outsmarts them and kills most of the crew in gruesome and absurd ways.      
+              While pursuing Zarina, the Leprechaun injects Mittenhand with a mixture of Zarina's DNA and the remains of a blended scorpion and tarantula, before initiating the ship's self-destruct mechanism. A surviving marine, Sticks, rushes to the bridge to defuse the self-destruct but is stopped by a password prompt. Mittenhand—now a grotesque monster calling himself "Mittenspider"—entangles Sticks in a giant web. Meanwhile, the other survivors confront the Leprechaun in the cargo bay, where they inadvertently cause him to transform into a giant after shooting him with Dr. Mittenhand's experimental growth ray.              
+              The ship's biological officer, Tina Reeves, escapes to the bridge and rescues Sticks by spraying Mittenhand with liquid nitrogen and shooting him. The only other surviving marine, Books, opens the airlock so the giant Leprechaun is sucked into space and explodes. Books joins the others at the helm and they deduce that the password is "Wizard", since Dr. Mittenhand previously compared himself to the Wizard of Oz. After stopping the self-destruct sequence, Books and Reeves kiss, while Sticks looks out the window to see the Leprechaun's giant hand giving him the finger.</p>
+          </div>
+        </div>
+        <div class="col hide-on-med-and-down l3">
+          <ul class="section table-of-contents pinned" style="top: 25px;">
+            <li><a href="#git">Daily git headaches</a></li>
+            <li><a href="#umpalumpa">Umpalumpa dance moves</a></li>
+            <li><a href="#leprechaun">Leprechaun space movies</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.scrollspy');
+        var instances = M.ScrollSpy.init(elems, {});
+      });
+    </script>
+  </body>
 </html>
