@@ -8,12 +8,13 @@
       code {
         padding: 3px;
         margin: 5px 0;
+        color: #666666;
         border-radius: 5px;
-        display: block;
       }
       code.console {
           background: rgb(45,10,36);
-          color: rgb(211,215,207);          
+          color: rgb(211,215,207);
+          display: block;
       }
       .header {
         color: #ee6e73;
@@ -28,11 +29,25 @@
         <div class="col s12 l9">
           <div id="git" class="section scrollspy">
             <h2 class="header">Daily git headaches</h2>      
+            
             <h5>"Oh, noes! I commited to the wrong branch again"</h5>
             <p>Reset to last commit and keep changes.</p>
             <code class="console">$ git reset --soft HEAD~1</code>
 
+            <h5>"Oh, noes! <code>git status</code> shows a million changed files with <code>^M</code> line endings"</h5>
+            <p>There's a linux/windows conflict brewing somewhere around here! - Someone has put carriage return onto your nice line feeds!</p>
+            <code class="console">$ git config --global core.autocrlf true</code>
+
           </div>
+
+          <div id="subsystem" class="section scrollspy">
+            <h2 class="header">Linux subsystem annoyance</h2>      
+            
+            <h5>"If I hear that beep one more time... I dare you!!"</h5>
+            <p>Uncomment <code>set bell-style</code> in <code>/etc/inputrc</code>.</p>
+            
+          </div>
+
           <div id="umpalumpa" class="section scrollspy">
             <h2 class="header">Umpalumpa dance moves</h2>      
             <h5>"The robot"</h5>
@@ -55,6 +70,7 @@
         <div class="col hide-on-med-and-down l3">
           <ul class="section table-of-contents pinned" style="top: 25px;">
             <li><a href="#git">Daily git headaches</a></li>
+            <li><a href="#subsystem">Linux subsystem annoyance</a></li>            
             <li><a href="#umpalumpa">Umpalumpa dance moves</a></li>
             <li><a href="#leprechaun">Leprechaun space movies</a></li>
           </ul>
