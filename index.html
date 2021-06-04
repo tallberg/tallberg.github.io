@@ -30,6 +30,18 @@
           <div id="git" class="section scrollspy">
             <h2 class="header">Daily git headaches</h2>      
             
+            <h5>"Oh, noes! My last 3 pushed commits look super messy!"</h5>
+            <p>Do an interactive rebase!</p>
+            <code class="console">$ git rebase -i HEAD~3</code>
+            <p>A text editor pops up - change all but first pick to squash, and save. You'll get to change commit message after this.</p>
+            <code class="console">
+              pick 3fbab1e First<br/>
+              squash 3cbab1e fix'd stuff<br/> 
+              squash 3b5def1 I'm le done!!!!<br/>
+            </code>
+            <p>Then Jedi force push</p>
+            <code class="console">$ git push --force</code>
+
             <h5>"Oh, noes! I commited to the wrong branch again"</h5>
             <p>Reset to last commit and keep changes.</p>
             <code class="console">$ git reset --soft HEAD~1</code>
