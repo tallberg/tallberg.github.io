@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL-result to insert statement</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+		body {
+			background-color:#fff1e1;
+			font-family: 'Courier New', Courier, monospace;
+			color: #1d3c45;
+		}
+        .head {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+        h1 {
+            background-color: #1d3c45;
+            color: #fff1e1;
+            display: inline-block;
+            padding: 2px 1em; 
+        }
+        #main {
+            width: 80%; 
+            margin: 25px auto;
+            padding: 5px; 
+			font-family: inherit;			
+        }
+        input, textarea {
+            border-top-right-radius: 5px;
+            border-style: solid;
+            outline: none;
+            padding:10px;
+            border-color: #1d3c45; 
+            border-left-width: 15px;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus {
+            border-color: #d2601a;
+        }
+        textarea {
+            width: 100%; 
+            height: 40em; 
+            white-space: pre; 
+            margin-top: 5px;
+        }
+        span {
+            color: #333;
+        }
+        .error {
+            background-color: firebrick;
+            color: #fff1e1;
+        }
+        @media all and (max-width: 1000px) {
+            #main {
+                width:100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div class="head"><h1>SQL Insert-Magicifier 3000&alpha;</h1></div>
+		<input type="text" id="table-name" value="TableName" />
+        
+        <input type="checkbox" id="identity" name="identity">
+        <label for="scales">Identity insert</label>
+        
+        <input type="checkbox" id="create" name="create">
+        <label for="scales">Create table</label>
+
+        <textarea id="input" placeholder="Paste tab-separated table with header and you'll get a fancy INSERT statement"></textarea>
+        <span id="rows"></span>
+    </div>
+
+    <script>
+        var tableName = 'TableName';
+        var identityInsert = false;
+        var createTable = false;
+        var originalInput = '';
+        var numRows = 0;
+        var numRowsElement = document.getElementById('rows');
+
+        // select all on TableName click
+        document.getElementById('table-name').addEventListener('click', function(event){
+            var elem = event.target;
+            if (elem && elem.value === "TableName") {
+                elem.setSelectionRange(0, elem.value.length);
+            }
+        });
+        
+        // set table name on key up
+        var setTableNameTimeout = null;
+        document.getElementById('table-name').addEventListener('keyup', function(event){
+            clearTimeout(setTableNameTimeout);
+            setTableNameTimeout = setTimeout(function(){
+                tableName = event.target.value;
+                convert();
+            }, 500);            
+        });
+
+        // set identity insert on change
+        document.getElementById('identity').addEventListener('change', function(event){
+            identityInsert = event.target.checked;
+            convert();
+        });
+
+        // set create tavle on change
+        document.getElementById('create').addEventListener('change', function(event){
+            createTable = event.target.checked;
+            convert();
+        });
+
+        const input = document.getElementById('input');
+        input.addEventListener('keyup', convert);
+
+        function resetCursor(txtElement) { 
+            if (txtElement.setSelectionRange) { 
+                txtElement.focus(); 
+                txtElement.setSelectionRange(0, 0); 
+            } else if (txtElement.createTextRange) { 
+                var range = txtElement.createTextRange();  
+                range.moveStart('character', 0); 
+                range.select(); 
+            } 
+        }
+
+        function convert(){
+            let text = input.value;
+            if (text.length < 6 || text.indexOf('\n') === -1) {
+                updateNumRows(0);
+                return;
+            }
+
+            const isAlreadyConverted = text.substr(0,12) === 'SET IDENTITY' || text.substr(0,6) === 'INSERT' || text.substr(0,6) === 'CREATE';
+            if (isAlreadyConverted && originalInput) {
+                text = originalInput;
+            } else {
+                originalInput = text;
+            }
+
+            const br = text.indexOf('\r\n') !== -1 ? '\r\n' : '\n'; 
+            let header = text.substr(0, text.indexOf(br)).split('\t')
+            let cols = header.length;
+            header = header.map(col => `[${col}]`);
+            let body = text.substr(text.indexOf(br) + br.length);
+
+            //const rowsRx = new RegExp(`(?:[^\t]*\t){${cols-1}}[^\n]*\n?`,'g'); // limitations: last column cannot contain newline
+            const rowsRx = new RegExp(`(?:[^\t]*\t){${cols-1}}[^\n]*(?:\n|$)`,'g'); // limitations: first column cannot contain newline
+
+            let rowMatch, rows = [];
+            while(rowMatch = rowsRx.exec(body)) {
+                let row = rowMatch[0].trim();
+                rows.push('(' + row.split('\t').map(col => col === 'NULL' ? 'NULL' : `'${col.replace(/'/g,"''")}'`) + ')');
+            }
+            let result = `INSERT INTO [${tableName}] (${header}) VALUES${br}${rows.join(`,${br}`)};${br}`;
+            
+            if (identityInsert) {
+                result = `SET IDENTITY_INSERT [${tableName}] ON${br}${result}SET IDENTITY_INSERT [${tableName}] OFF${br}`
+            }
+            
+            if (createTable) {
+                rowsRx.lastIndex = 0;
+                var firstRow = rowsRx.exec(body)[0].trim();
+                result = createCreate(firstRow.split('\t'), header, br) + br + result;
+            }
+            
+            input.value = result;
+            input.scrollTop = 0;
+            input.scrollLeft = 0;
+            updateNumRows(rows.length);
+        }
+
+        function createCreate(cols, headers, br) {
+            if (cols.length !== headers.length) {
+                throw 'Header and row length does not match!';
+            }
+            var create = `CREATE TABLE ${tableName} (${br}`;
+            var defs = [];
+            for(var col in cols) {
+                // 12321
+                if (/^\d+$/.test(cols[col])) {
+                    console.log(col, /^\[id\]$/i.test(headers[0]), headers[col]);
+                    if (col == 0 && /^\[id\]$/i.test(headers[0])) {
+                        defs.push(`\t${headers[col]} BIGINT NOT NULL PRIMARY KEY`);
+                    } else {
+                        defs.push(`\t${headers[col]} INT`);
+                    }
+                } 
+                //C94821AB-C6DB-4788-A317-6296F0C692A6
+				else if (/^[0-9A-F\-]{36}$/.test(cols[col])) {
+					if (col == 0 && /^\[(guid|id)\]$/i.test(header[0])) {
+                        defs.push(`\t${headers[col]} UNIQUEIDENTIFIER NOT NULL PRIMARY KEY`);
+                    } else {
+                        defs.push(`\t${headers[col]} UNIQUEIDENTIFIER`);
+                    }
+				}
+                //12323.123
+                else if (/^\d+\.\d+$/.test(cols[col])) {
+                    defs.push(`\t${headers[col]} DECIMAL`);
+                }
+                // NULL
+                else if (cols[col] == 'NULL') {
+                    defs.push(`\t${headers[col]} DATETIME2`);
+                    //defs.push(`\t${headers[col]} BIGINT`);
+                } 
+                //'2019-12-21 12:45:10.0000'
+                else if (/^\d{4}\-\d\d\-\d\d/.test(cols[col]) && Date.parse(cols[col]) > 0) {
+                    defs.push(`\t${headers[col]} DATETIME2`);
+                } 
+                // asdf123
+                else {
+                    defs.push(`\t${headers[col]} VARCHAR(MAX)`);
+                }
+            }
+            create += defs.join(',' + br) + br + ');';
+            return create;
+        }
+
+        function updateNumRows(numRows) {
+            let text = '';
+            if (numRows > 1000) {
+                numRowsElement.classList.add('error');
+                // TODO: instead of complaining - create multiple insert statements
+                text = `${numRows} rows - MSSQL does not allow more than 1000 rows per insert statement.`;
+            } else {
+                numRowsElement.classList.remove('error');
+                text = `${numRows} rows`;
+            }
+            numRowsElement.innerText = text;
+        }
+    </script>
+</body>
+</html>
