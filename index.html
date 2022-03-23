@@ -16,6 +16,11 @@
           color: rgb(211,215,207);
           display: block;
       }
+      code.sql {
+        border: 2px solid rgb(41,57,85);
+        display: block;
+        padding: 4px;
+      }
       .header {
         color: #ee6e73;
         font-weight: 300;
@@ -27,6 +32,13 @@
     <div class="container">
       <div class="row">
         <div class="col s12 l9">
+          <div id="sql" class="section scrollspy">
+            <h2 class="header">My SQL Struggles</h2>
+            <h5>Whoopsies! db stuck att Restoring... again!</h5>
+            <p>Don't forget to tick the <code>Close existing connections</code> box in options ever again!!! Now run this:</p>
+            <code class="sql">RESTORE DATABASE [databasename] WITH RECOVERY</code>
+          </div>
+
           <div id="git" class="section scrollspy">
             <h2 class="header">Daily git headaches</h2>      
             
@@ -81,6 +93,7 @@
         </div>
         <div class="col hide-on-med-and-down l3">
           <ul class="section table-of-contents pinned" style="top: 25px;">
+            <li><a href="#sql">My SQL struggles</a></li>
             <li><a href="#git">Daily git headaches</a></li>
             <li><a href="#subsystem">Linux subsystem annoyance</a></li>            
             <li><a href="#umpalumpa">Umpalumpa dance moves</a></li>
