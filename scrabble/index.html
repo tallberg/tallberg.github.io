@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>Document</title>
+<script src="./ord.js"></script>
+<script src="./scrabble.js"></script>
+<style>
+html {
+    font-family: 'Arial';
+    background:#fafafa;
+    color:#333;
+}
+.container {
+    min-width: 400px;
+    width: 60%;
+    margin: auto;
+}
+h1, h2{
+    color:#498cd0;
+    font-variant-caps: small-caps;
+    border-bottom: 2px solid #498cd0;
+}
+pre {
+    background:#fff;
+}
+div {
+    margin:5px 0;
+}
+label {
+    display: block;
+    font-weight: bold;
+}
+.pattern span {
+    font-family: 'Arial';
+    font-size: 2em;
+}
+input {
+    font-family: 'Arial';
+    font-size: 2em;
+    font-variant-caps: all-small-caps;
+    border: none;
+    border-bottom: 2px solid #498cd0;
+    outline: none; 
+    background: inherit;
+    width: 100%;
+}
+input:focus {
+    border: none;
+    border-bottom: 3px solid #b3d9ff;
+}
+textarea{
+    font-size: 1em;
+    border: none;
+    outline: none; 
+    background: inherit;
+    width: 100%;
+}
+button {
+    border: 2px solid #498cd0;
+    border-radius: 3px;
+    padding: 5px; 
+    color: #498cd0;
+    background: inherit;
+    font-weight: bold;
+    margin: 8px 0;
+    outline: none;
+}
+button:focus {
+    border: 2px solid #b3d9ff;
+}
+button:active {
+    border: 2px solid #b3d9ff;
+    color: #b3d9ff;
+}
+</style>
+<div class="container">
+    <h1>Scrabble Search (Swedish)</h1>
+    <div>
+    <label>Available letters</label>
+    <input id="letters" value="asdf" />
+</div>
+<div>
+    <label>Number of wildcards</label>
+    <input id="wildcards" type="number" size="2" value="0" />
+</div>
+<div>
+    <label>Pattern</label>
+    <div class="pattern" style="display:flex; flex-flow: row nowrap;">
+        <div><span>/^</span></div>
+        <div style="flex-grow: 5;"><input id="pattern" value=".*"></div>        
+        <div><span>$/</span></div>
+    </div>
+    <footer>(Letters in pattern need to be in "available letters" or used as wildcard)</footer>
+</div>
+<div style="text-align:center">
+    <button id="butt">SEARCH</button>
+</div>
+<div>
+    <h2>Result</h2>
+    <textarea cols="100" rows="10" id="result"></textarea>
+</div>
+</div>
+
+<div id="tests"></div>
+
+<script>
+    const s = new Scrabble(ord);
+    const points = {"A":1,"B":3,"C":8,"D":1,"E":1,"F":3,"G":2,"H":3,"I":1,
+        "J":7,"K":3,"L":2,"M":3,"N":1,"O":2,"P":4,"Q":0,"R":1,"S":1,"T":1,
+        "U":4,"V":3,"W":0,"X":8,"Y":7,"Z":8,"Å":4,"Ä":4,"Ö":4}; 
+
+    var butt = document.getElementById('butt');
+    butt.addEventListener('click', prep);
+    prep();
+
+    function prep() {
+        const letters = document.getElementById('letters').value;
+        const pattern = document.getElementById('pattern').value;
+        const wildcards = +document.getElementById('wildcards').value;        
+        const result = document.getElementById('result');
+        result.value = calc(letters, pattern, wildcards, ord) || 'No match';
+    };
+
+    function calc(letters, pattern, wildcards, dict) {
+        const rxPattern = '^' + pattern.replace(/\*/g, '{0,' + (wildcards + letters.length) + '}') + '$'
+        const rx = new RegExp(rxPattern);
+        return s.getAllByPoints(letters, rx, wildcards, points).map(o => `${o.w}(${o.v})`).join('\t');
+    }
+</script>
