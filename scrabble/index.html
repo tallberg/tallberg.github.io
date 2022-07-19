@@ -122,7 +122,7 @@ button:active {
 
     function calc(letters, pattern, wildcards, dict) {
         const rxPattern = '^' + pattern.replace(/\*/g, '{0,' + (wildcards + letters.length) + '}') + '$'
-        const rx = new RegExp(rxPattern);
+        const rx = new RegExp(rxPattern,'i');
         return s.getAllByPoints(letters, rx, wildcards, points).map(o => `${o.w}(${o.v})`).join('\t');
     }
 </script>
