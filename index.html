@@ -11,6 +11,13 @@
         color: #666666;
         border-radius: 5px;
       }
+      code.ps {
+          background: rgb(1,36,86);
+          color: rgb(211,215,207);
+          white-space: pre;
+          display: block;
+          overflow-x: scroll;
+      }
       code.console {
           background: rgb(45,10,36);
           color: rgb(211,215,207);
@@ -32,6 +39,7 @@
     <div class="container">
       <div class="row">
         <div class="col s12 l9">
+
           <div id="sql" class="section scrollspy">
             <h2 class="header">My SQL Struggles</h2>
             <h5>Whoopsies! db stuck att Restoring... again!</h5>
@@ -70,6 +78,32 @@
             <h5>"If I hear that beep one more time... I dare you!!"</h5>
             <p>Uncomment <code>set bell-style</code> in <code>/etc/inputrc</code>.</p>
             
+            <h5>Time to style Ubuntu WSL in MS Terminal for the &pi;^c!+1:th time - no thanks!</h5>
+            <code class="ps">#Download ubuntu font
+wget "http://127.0.0.1:8080/UbuntuMono-R.ttf" -OutFile c:\windows\fonts\UbuntuMono-R.ttf
+#Download color scheme and convert tp PS object
+$req = wget "http://127.0.0.1:8080/ubuntu-schema.json"
+$ubuntu = $req.Content | ConvertFrom-Json
+#Goto terminal settings folder
+cd $env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState\
+#Create a backup
+$timestamp = get-date -Format 'yyyy-MM-ddTHH-mm-ss'
+cp settings.json settings.json.$timestamp.backup
+#Get settings as PS object
+$settings = type settings.json | ConvertFrom-Json
+#Add ubuntu color schema to settings
+$settings.schemas += $ubuntu
+#Find Ubuntu profile settings and set scheme and font
+$profile = $settings.profiles.list | Where-Object {$_.Name -eq "Ubuntu-20.04"}
+$profile.PSObject.Properties.Remove('font')
+$profile.PSObject.Properties.Remove('colorScheme')
+$fontFace = New-Object -Typename PSCustomObject -Property @{fontFace = "Ubuntu Mono"}
+$profile | Add-Member -NotePropertyName colorScheme -NotePropertyValue Ubuntu
+$profile | Add-Member -NotePropertyName font -NotePropertyValue $fontFace
+$settings | ConvertTo-Json > settings.json
+code
+            </code>
+
           </div>
 
           <div id="umpalumpa" class="section scrollspy">
