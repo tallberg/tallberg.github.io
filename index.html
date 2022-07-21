@@ -79,10 +79,11 @@
             <p>Uncomment <code>set bell-style</code> in <code>/etc/inputrc</code>.</p>
             
             <h5>Time to style Ubuntu WSL in MS Terminal for the &pi;^c!+1:th time - no thanks!</h5>
-            <code class="ps">#Download ubuntu font
-wget "http://127.0.0.1:8080/UbuntuMono-R.ttf" -OutFile c:\windows\fonts\UbuntuMono-R.ttf
+            <p>Run powershell as administrator and... BOOM!</p>
+            <code class="ps">#Download ubuntu font (saving to windows\fonts require admin)
+wget "https://tallberg.github.io/term/UbuntuMono-R.ttf" -OutFile c:\windows\fonts\UbuntuMono-R.ttf
 #Download color scheme and convert tp PS object
-$req = wget "http://127.0.0.1:8080/ubuntu-schema.json"
+$req = wget "https://tallberg.github.io/term/ubuntu-schema.json" -UseBasicParsing
 $ubuntu = $req.Content | ConvertFrom-Json
 #Goto terminal settings folder
 cd $env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState\
@@ -92,18 +93,16 @@ cp settings.json settings.json.$timestamp.backup
 #Get settings as PS object
 $settings = type settings.json | ConvertFrom-Json
 #Add ubuntu color schema to settings
-$settings.schemas += $ubuntu
+$settings.schemes += $ubuntu
 #Find Ubuntu profile settings and set scheme and font
-$profile = $settings.profiles.list | Where-Object {$_.Name -eq "Ubuntu-20.04"}
+$profile = $settings.profiles.list | Where-Object {$_.Name -contains "Ubuntu"}
 $profile.PSObject.Properties.Remove('font')
 $profile.PSObject.Properties.Remove('colorScheme')
 $fontFace = New-Object -Typename PSCustomObject -Property @{fontFace = "Ubuntu Mono"}
 $profile | Add-Member -NotePropertyName colorScheme -NotePropertyValue Ubuntu
 $profile | Add-Member -NotePropertyName font -NotePropertyValue $fontFace
-$settings | ConvertTo-Json > settings.json
-code
+$settings | ConvertTo-Json -Depth 4 | out-file -encoding utf8 settings.json
             </code>
-
           </div>
 
           <div id="umpalumpa" class="section scrollspy">
