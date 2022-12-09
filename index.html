@@ -28,6 +28,9 @@
         display: block;
         padding: 4px;
       }
+      code.inline {
+        display:inline-block;
+      }
       .header {
         color: #ee6e73;
         font-weight: 300;
@@ -77,6 +80,11 @@
             
             <h5>"If I hear that beep one more time... I dare you!!"</h5>
             <p>Uncomment <code>set bell-style</code> in <code>/etc/inputrc</code>.</p>
+
+            <h5>"What was that update/upgrade 1-liner I so love to watch running?"</h5>
+            <p>Her ya go! This'll create a yummy shell script ;)</p>
+            <p><code class="console">echo $'#!/bin/sh\nsudo apt update && sudo apt -y upgrade && sudo apt -y autoclean && sudo apt -y autoremove' > update</code></p>
+            <p>Now run it <code class="console inline">sudo ./update</code> and enjoy that warm feeling.</p>
             
             <h5>Time to style Ubuntu WSL in MS Terminal for the &pi;^c!+1:th time - no thanks!</h5>
             <p>Run powershell as administrator and... BOOM!</p>
@@ -103,6 +111,7 @@ $profile | Add-Member -NotePropertyName colorScheme -NotePropertyValue Ubuntu
 $profile | Add-Member -NotePropertyName font -NotePropertyValue $fontFace
 $settings | ConvertTo-Json -Depth 4 | out-file -encoding utf8 settings.json
             </code>
+            <p>This will, for sure, work every time, no exceptions!</p>
           </div>
 
           <div id="umpalumpa" class="section scrollspy">
