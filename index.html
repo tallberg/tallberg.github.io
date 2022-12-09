@@ -83,7 +83,7 @@
 
             <h5>"What was that update/upgrade 1-liner I so love to watch running?"</h5>
             <p>Her ya go! This'll create a yummy shell script ;)</p>
-            <p><code class="console">echo $'#!/bin/sh\nsudo apt update && sudo apt -y upgrade && sudo apt -y autoclean && sudo apt -y autoremove' > update</code></p>
+            <p><code class="console">echo $'#!/bin/sh\nsudo apt update && sudo apt -y upgrade && sudo apt -y autoclean && sudo apt -y autoremove' > update | chmod +x update</code></p>
             <p>Now run it <code class="console inline">sudo ./update</code> and enjoy that warm feeling.</p>
             
             <h5>Time to style Ubuntu WSL in MS Terminal for the &pi;^c!+1:th time - no thanks!</h5>
