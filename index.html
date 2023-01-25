@@ -75,6 +75,29 @@
 
           </div>
 
+          <div id="powershell" class="section scrollspy">
+            <h2 class="header">PowerShell stuff (that never sticks)</h2> 
+            <h5>Select-String</h5>
+            <code class="ps">
+#select rows containing pattern
+Select-String -pattern 'asd.[^"]+' .\file.js
+file.js:42       model="asd.qwe"
+file.js:44       {{asd.qwe}}
+#select match only
+Select-String -pattern 'asd.[^"]+' .\file.js | foreach {$_Matches.Value}
+asd.qwe
+asd.qwe
+#select match group values
+Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_Matches.Groups[1].Value}
+qwe
+qwe
+#select sorted, unique group values
+Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_Matches.Groups[1].Value} | Sort-Object | Get-Unique
+qwe
+            </code>
+            <p></p>
+          </div>
+
           <div id="subsystem" class="section scrollspy">
             <h2 class="header">Linux subsystem annoyance</h2>      
             
@@ -90,7 +113,7 @@
             <p>Run powershell as administrator and... BOOM!</p>
             <code class="ps">#Download ubuntu font (saving to windows\fonts require admin)
 wget "https://tallberg.github.io/term/UbuntuMono-R.ttf" -OutFile c:\windows\fonts\UbuntuMono-R.ttf
-#Download color scheme and convert tp PS object
+#Download color scheme and convert to PS object
 $req = wget "https://tallberg.github.io/term/ubuntu-schema.json" -UseBasicParsing
 $ubuntu = $req.Content | ConvertFrom-Json
 #Goto terminal settings folder
