@@ -216,7 +216,7 @@
                 resultRows.push(`DELETE FROM [${tableName}] WHERE ${targetHeader[0]} IN (${deleteIds.join()})${br}`);
             }
             
-            //ALTER
+            //UPDATE
             let alterCount = 0;
             for(sourceRow of sourceRows){
                 let targetRow = targetRows.find(r => r[0]==sourceRow[0]);
@@ -232,7 +232,7 @@
                 }
                 if(updates.length){
                     alterCount++;
-                    resultRows.push(`ALTER TABLE [${tableName}] SET ${updates.join()} WHERE ${targetHeader[0]}=${targetRow[0]}`);
+                    resultRows.push(`UPDATE [${tableName}] SET ${updates.join()} WHERE ${targetHeader[0]} = ${targetRow[0]}`);
                 }
             }
 
