@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL-results to update statement</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+		body {
+			background-color:#fff1e1;
+			font-family: 'Courier New', Courier, monospace;
+			color: #1d3c45;
+		}
+        .head {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+        h1 {
+            background-color: #1d3c45;
+            color: #fff1e1;
+            display: inline-block;
+            padding: 2px 1em; 
+        }
+        #main {
+            width: 80%; 
+            margin: 25px auto;
+            padding: 5px; 
+			font-family: inherit;			
+        }
+        input, textarea {
+            border-top-right-radius: 5px;
+            border-style: solid;
+            outline: none;
+            padding:10px;
+            border-color: #1d3c45; 
+            border-left-width: 15px;
+            font-family: inherit;
+        }
+        #target{
+            border-top-right-radius: 0;
+            flex-grow: 3;
+        }
+        #source{
+            border-left: 1;
+            flex-grow: 1;
+        }
+        input:focus, textarea:focus {
+            border-color: #d2601a;
+        }
+        textarea {
+            height: 40em; 
+            white-space: pre; 
+            margin-top: 5px;
+        }
+        span {
+            color: #333;
+        }
+        .flex {
+            display:flex;
+        }
+        .error {
+            background-color: firebrick;
+            color: #fff1e1;
+        }
+        @media all and (max-width: 1000px) {
+            #main {
+                width:100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div class="head"><h1>SQL Update-Magicifier 3000&alpha;</h1></div>
+		<input type="text" id="table-name" value="TableName" />
+        
+        <input type="checkbox" id="identity" name="identity">
+        <label for="scales">Identity insert</label>
+        <div class="flex">
+            <textarea id="target" placeholder="Target"></textarea>
+            <textarea id="source" placeholder="Source"></textarea>
+        </div>
+        <span id="rows"></span>
+    </div>
+
+    <script>
+        var tableName = 'TableName';
+        var identityInsert = false;
+        var originalInput = '';
+        var numRows = 0;
+        var numRowsElement = document.getElementById('rows');
+
+        // select all on TableName click
+        document.getElementById('table-name').addEventListener('click', function(event){
+            var elem = event.target;
+            if (elem && elem.value === "TableName") {
+                elem.setSelectionRange(0, elem.value.length);
+            }
+        });
+        
+        // set table name on key up
+        var setTableNameTimeout = null;
+        document.getElementById('table-name').addEventListener('keyup', function(event){
+            clearTimeout(setTableNameTimeout);
+            setTableNameTimeout = setTimeout(function(){
+                tableName = event.target.value;
+                convert();
+            }, 500);            
+        });
+
+        // set identity insert on change
+        document.getElementById('identity').addEventListener('change', function(event){
+            identityInsert = event.target.checked;
+            convert();
+        });
+
+        const source = document.getElementById('source');
+        source.addEventListener('keyup', convert);
+
+        const target = document.getElementById('target');
+        target.addEventListener('keyup', convert);
+
+        function resetCursor(txtElement) { 
+            if (txtElement.setSelectionRange) { 
+                txtElement.focus(); 
+                txtElement.setSelectionRange(0, 0); 
+            } else if (txtElement.createTextRange) { 
+                var range = txtElement.createTextRange();  
+                range.moveStart('character', 0); 
+                range.select(); 
+            } 
+        }
+
+        function convert(){
+            const sourceText = source.value;
+            let targetText = target.value;
+            if (sourceText.length < 6 || sourceText.indexOf('\n') === -1 || targetText.length < 6 || targetText.indexOf('\n') === -1) {
+                updateNumRows(0,0,0);
+                return;
+            }
+
+            const isAlreadyConverted = targetText.substring(0,12) === 'SET IDENTITY' || targetText.substring(0,6) === 'UPDATE' || targetText.substr(0,5) === 'DELETE' || targetText.substr(0,6) === 'INSERT';
+            if (isAlreadyConverted && originalInput) {
+                targetText = originalInput;
+            } else {
+                originalInput = targetText;
+            }
+
+            let br = sourceText.indexOf('\r\n') !== -1 ? '\r\n' : '\n'; 
+            let sourceHeader = sourceText.substr(0, sourceText.indexOf(br)).split('\t')
+            let sourceCols = sourceHeader.length;
+            sourceHeader = sourceHeader.map(col => `[${col}]`);
+            let sourceBody = sourceText.substr(sourceText.indexOf(br) + br.length);
+
+            br = targetText.indexOf('\r\n') !== -1 ? '\r\n' : '\n'; 
+            let targetHeader = targetText.substr(0, targetText.indexOf(br)).split('\t')
+            let targetCols = targetHeader.length;
+            targetHeader = targetHeader.map(col => `[${col}]`);
+            let targetBody = targetText.substr(targetText.indexOf(br) + br.length);
+
+            if(sourceCols != targetCols) {
+                alert("Sorry! Can't handle diff in column names...")
+                return;
+            }
+            for(col in sourceHeader){
+                if(sourceHeader[col] != targetHeader[col]){
+                    alert("Sorry! Can't handle diff in column names...")
+                    return;
+                }
+            }
+            
+            //const rowsRx = new RegExp(`(?:[^\t]*\t){${cols-1}}[^\n]*\n?`,'g'); // limitations: last column cannot contain newline
+            const sourceRowsRx = new RegExp(`(?:[^\t]*\t){${sourceCols-1}}[^\n]*(?:\n|$)`,'g'); // limitations: first column cannot contain newline
+            let sourceRowMatch, sourceRows = [];
+            while(sourceRowMatch = sourceRowsRx.exec(sourceBody)) {
+                let row = sourceRowMatch[0].trim();
+                sourceRows.push(row.split('\t').map(col => col === 'NULL' ? 'NULL' : `'${col.replace(/'/g,"''")}'`));
+            }
+
+            const targetRowsRx = new RegExp(`(?:[^\t]*\t){${targetCols-1}}[^\n]*(?:\n|$)`,'g'); // limitations: first column cannot contain newline
+            let targetRowMatch, targetRows = [];
+            while(targetRowMatch = targetRowsRx.exec(targetBody)) {
+                let row = targetRowMatch[0].trim();
+                targetRows.push(row.split('\t').map(col => col === 'NULL' ? 'NULL' : `'${col.replace(/'/g,"''")}'`));
+            }
+
+            const resultRows = [];            
+
+            //INSERT
+            const insertRows = [];
+            for(row of sourceRows){
+                if(!targetRows.some(r => r[0]==row[0])){
+                    insertRows.push('('+row+')');
+                }
+            }
+            if(insertRows.length){
+                const insertResult = `INSERT INTO [${tableName}] (${targetHeader}) VALUES${br}${insertRows.join(`,${br}`)};${br}`;
+                if (identityInsert) {
+                    resultRows.push(`SET IDENTITY_INSERT [${tableName}] ON${br}${insertResult}SET IDENTITY_INSERT [${tableName}] OFF${br}`);
+                } else {
+                    resultRows.push(insertResult);
+                }
+            }
+
+            //DELETE
+            //We asume first col is id, and id's should match. Delete id's that does not exist in source.
+            const deleteIds = [];
+            for(row of targetRows){
+                if(!sourceRows.some(r => r[0]==row[0])){
+                    deleteIds.push(row[0]);
+                }
+            }
+            if(deleteIds.length) {
+                resultRows.push(`DELETE FROM [${tableName}] WHERE ${targetHeader[0]} IN (${deleteIds.join()})${br}`);
+            }
+            
+            //ALTER
+            let alterCount = 0;
+            for(sourceRow of sourceRows){
+                let targetRow = targetRows.find(r => r[0]==sourceRow[0]);
+                if(!targetRow){
+                    continue;
+                }
+                let updates = [];
+                for(col in sourceRow){
+                    if(sourceRow[col] != targetRow[col]){
+                        console.log(sourceRow[col], targetRow[col]);
+                        updates.push(`${targetHeader[col]} = ${sourceRow[col]}`)
+                    }                    
+                }
+                if(updates.length){
+                    alterCount++;
+                    resultRows.push(`ALTER TABLE [${tableName}] SET ${updates.join()} WHERE ${targetHeader[0]}=${targetRow[0]}`);
+                }
+            }
+
+            target.value = resultRows.join(br);
+            target.scrollTop = 0;
+            target.scrollLeft = 0;
+            updateNumRows(insertRows.length, alterCount, deleteIds.length);
+        }
+
+        function updateNumRows(insert, update, del) {
+            let text = '';
+            if (insert > 1000) {
+                numRowsElement.classList.add('error');
+                // TODO: instead of complaining - create multiple insert statements
+                text = `${insert} inserts - MSSQL does not allow more than 1000 rows per insert statement. `;
+            } else {
+                numRowsElement.classList.remove('error');
+                text = `${insert} inserts `;
+            }
+            text += `${update} updates, ${del} deletes`
+            numRowsElement.innerText = text;
+        }
+    </script>
+</body>
+</html>
