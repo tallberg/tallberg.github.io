@@ -84,15 +84,15 @@ Select-String -pattern 'asd.[^"]+' .\file.js
 file.js:42       model="asd.qwe"
 file.js:44       {{asd.qwe}}
 #select match only
-Select-String -pattern 'asd.[^"]+' .\file.js | foreach {$_Matches.Value}
+Select-String -pattern 'asd.[^"]+' .\file.js | foreach {$_.Matches.Value}
 asd.qwe
 asd.qwe
 #select match group values
-Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_Matches.Groups[1].Value}
+Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_.Matches.Groups[1].Value}
 qwe
 qwe
 #select sorted, unique group values
-Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_Matches.Groups[1].Value} | Sort-Object | Get-Unique
+Select-String -pattern 'asd.([^"]+)' .\file.js | foreach {$_.Matches.Groups[1].Value} | Sort-Object | Get-Unique
 qwe
             </code>
             <p></p>
