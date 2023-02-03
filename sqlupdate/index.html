@@ -141,7 +141,10 @@
                 return;
             }
 
-            const isAlreadyConverted = targetText.substring(0,12) === 'SET IDENTITY' || targetText.substring(0,6) === 'UPDATE' || targetText.substr(0,5) === 'DELETE' || targetText.substr(0,6) === 'INSERT';
+            const isAlreadyConverted = targetText.substring(0,12) === 'SET IDENTITY' 
+                || targetText.substring(0,6) === 'UPDATE' 
+                || targetText.substring(0,6) === 'DELETE' 
+                || targetText.substring(0,6) === 'INSERT';
             if (isAlreadyConverted && originalInput) {
                 targetText = originalInput;
             } else {
@@ -162,11 +165,13 @@
 
             if(sourceCols != targetCols) {
                 alert("Sorry! Can't handle diff in column names...")
+                console.error("col diff num", sourceCols, targetCols, sourceHeader, targetHeader);
                 return;
             }
             for(col in sourceHeader){
                 if(sourceHeader[col] != targetHeader[col]){
                     alert("Sorry! Can't handle diff in column names...")
+                    console.error("col diff name/order", sourceHeader, targetHeader);
                     return;
                 }
             }
