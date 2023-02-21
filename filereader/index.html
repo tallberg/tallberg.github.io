@@ -58,6 +58,7 @@ var lastUpdate;
 
 async function dropHandler(ev) {
   ev.preventDefault();
+  log = {};
   fileItemHandle = await ev.dataTransfer.items[0].getAsFileSystemHandle();
   readFile(await fileItemHandle.getFile());
   hideInput();
