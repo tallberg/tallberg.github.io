@@ -1,176 +1,98 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON-Reader</title>
 <style>
-#dropzone{
-    color:#1b395f;
-    text-align: center;
-    vertical-align: middle;
-    height: 100%;
-    font-size: 50px;
-    border: 2px dashed #1b395f;
+body {
+    color:#333;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 25px;
 }
-div>ul{padding:10px;}
-div>ul>li{
-    cursor:pointer;
-    list-style: none;
+button {
+  background-color: #8ecf6f;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  box-shadow: 2px 2px 2px #aaa, -2px -2px 2px #fff,;
+  font-family: 'Courier New', Courier, monospace;
 }
-ul ul {display: none;}
-ul ul li {
-    list-style:circle;
-    margin-left: 17px;
+button:disabled {
+  background-color: #526b46;
+  cursor: not-allowed;
 }
-.h{font-size:large;}
-.m{font-size:larger;}
-.INF.d{color:rgb(21, 72, 117);}
-.INF.h{color:rgb(46, 107, 161);}
-.INF.m{color:#1365d1;}
-.ERR.d{color:rgb(117, 21, 21);}
-.ERR.h{color:rgb(161, 46, 46);}
-.ERR.m{color:#d11313;}
-.WAR.d{color:rgb(117, 115, 21);}
-.WAR.h{color:rgb(161, 153, 46);}
-.WAR.m{color:#f3ef08;}
-.DEB.d{color:rgb(21, 117, 29);}
-.DEB.h{color:rgb(50, 161, 46);}
-.DEB.m{color:#10f308;}
+
 </style>
 </head>
 
 <!--Entire page is dropzone "#input" is just cosmetics-->
-<body ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
-<div id="input">
-    <div id="dropzone">DROP ZONE<br>⮋</div>
-</div>
-<div id="output"></div>
+<body>
+<h1>Drag and drop file anywhere</h1>
+<p>File will be parsed as json if possible, else row by row into an array.<br> Resulting object will be accessible from dev console (Press F12).</p>
+<button type="button" id="save" disabled="disabled" onclick="save()">Save "data" as data.json</button>
 </body>
 
 <script>
 const input = document.getElementById('input');
-const output = document.getElementById('output');
-const buffer = 100*1000; // Bytes to read from end of file
-const updateInterval = 30*1000; // Check for file changes and update
-const redrawInterval = 5*60*1000; // Redraw gui if no file changes
-const encoding = 'ISO-8859-1' //Latin-1
-const log = {};
-var fileItemHandle;
-var lastSize = 0;
-var lastUpdate;
-
-async function dropHandler(ev) {
-  ev.preventDefault();
-  log = {};
-  fileItemHandle = await ev.dataTransfer.items[0].getAsFileSystemHandle();
-  readFile(await fileItemHandle.getFile());
-  hideInput();
-}
-
-function readFile(file){
-    const size = file.size;
-    lastSize = size;
-    const start = size - Math.min(buffer, size);
-    const fr = new FileReader();
-    fr.addEventListener('load', () => parseLog4Net(fr.result, lastSize));
-    fr.readAsText(file.slice(start,size),'ISO-8859-1'); //Latin-1
-}
-
-function parseLog4Net(data, end){
-    const lines = data.split(/\r\n(?=\d{4})/g); // Split on date time
-    let ptr = end; // Read from end
-    for(i = lines.length-1; i > 0; --i){
-        const dt = Date.parse(lines[i].substring(0, 23).replace(',','.'));
-        const type = lines[i].substring(24, 27);
-        const separator = lines[i].indexOf(' - ');
-        const file = lines[i].substring(lines[i].indexOf(']')+2, separator)
-        const eol = lines[i].indexOf('\r');
-        const endOfMessage = eol > -1? eol : lines[i].length
-        let msg = lines[i].substring(separator + 3, endOfMessage);
-
-        // Replace date in msg (remove this when log msg isn't stupid)
-        const replaceRx = /[\d\s-:]+UTC/;
-        const replaceWith = " [DateTime]";
-        msg = msg.replace(replaceRx, replaceWith);
-
-        // Exception / stack trace
-        let ex = null;
-        if(endOfMessage != lines[i].length) {
-            ex = lines[i].substring(endOfMessage+2);
-        }
-        ptr -= lines[i].length;
-
-        if(!log[msg]){ // Add new msg
-            log[msg] = {
-                dt,
-                dts: (new Date(dt)).toLocaleString(),
-                type,
-                file,
-                ex,
-                cnt: 1
-            }
-        } else {
-            log[msg].cnt++; // Increment existing
-            if(log[msg].dt < dt){ // Update new log entries 
-                log[msg].dt = dt;
-                log[msg].dts = (new Date(dt)).toLocaleString();
-                log[msg].ex = ex;
-            }
-        }
-
-    }
-    viewData();
-}
-
-async function update(){
-    f = await fileItemHandle.getFile();
-    const size = f.size;
-    if(size == lastSize) {
-        setTimeout(update, updateInterval);
-        if(Date.now() - lastUpdate > redrawInterval) {
-            console.log('No activity, redraw!')
-            viewData();
-        }
-        return;
-    }
-    const fr = new FileReader();
-    fr.addEventListener('load', () => parseLog4Net(fr.result, lastSize));
-    fr.readAsText(f.slice(lastSize,size), encoding);
-    lastSize = size;
-}
-
-function viewData(){
-    lastUpdate = Date.now();
-    const orderByDateTime = Object.values(log).map(x => x.dt).sort((a,b)=>a<b);
-    const days = Date.now() - 24*60*60*1000;
-    const hours = Date.now() - 1*60*60*1000;
-    const minutes = Date.now() - 5*60*1000;
-    const htmlMessages = [];
-    for(msg of Object.keys(log)){
-        const l = log[msg];
-        const pos = orderByDateTime.indexOf(l.dt); //Assuming DateTime logs does not have logs on exact same millisecond
-        const cssClasses = l.dt > minutes ? 'm ' : (l.dt > hours ? "h " : (l.dt > days ? "d " : "")) + l.type;
-        const fileAndException = `<ul><li>${l.file}</li>${l.ex?`<li>${l.ex}</li>`:''}</ul>`;
-        htmlMessages[pos] = `<li class="${cssClasses}">${l.dts} [${l.type}] ${msg} (${l.cnt})${fileAndException}</li>`;
-    }
-    output.innerHTML = `<ul>${htmlMessages.join('')}</ul>`;
-    addEventListeners();
-    setTimeout(update, updateInterval);
-}
-
-function addEventListeners(){
-    const uls = document.querySelectorAll("ul ul");
-    for(ul of uls){
-        ul.parentElement.addEventListener('click', function(e){
-            const child = e.target.firstElementChild;
-            child.style.display = child.style.display == 'inline' ? 'none' : 'inline';
-        });
-    }
-}
+var data;
 
 function dragOverHandler(ev) {
   ev.preventDefault();
 }
 
-function hideInput(){
-    input.style.display='none';
+async function dropHandler(ev) {
+  ev.preventDefault();
+  fileItemHandle = await ev.dataTransfer.items[0].getAsFileSystemHandle();
+  const file = await fileItemHandle.getFile();
+  const fr = new FileReader();
+  fr.addEventListener('load', () => { parse(fr.result) });
+  fr.readAsText(file,'ISO-8859-1'); //Latin-1
 }
+
+function parse(text) {
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.log("Failed to load data as JSON");
+
+    if (text.indexOf(/\r?\n/)!=-1) {
+      console.log('Saving rows to array');
+      data = text.split(/\r?\n/);
+    } else {
+      console.log('Saving entire text')
+      data = text;
+    }
+  }
+  console.log('File is loaded into variable: "data"');
+  if (Array.isArray(data)) {
+    const length = data.length;
+    const size = new Blob([JSON.stringify(data)]).size;
+    const type = typeof(data[0]);
+    console.log(`data is an array of ${length} ${type}s with an average size of ${Math.round(size/length)} bytes.`);    
+    if (data[0] != null && typeof(data[0]) == "object") {
+      console.log("first object keys:", Object.keys(data[0]).sort())
+    }
+  } else if (data != null && typeof(data) == "object") {
+    console.log("data is an object with keys:", Object.keys(data).sort())
+  } else {
+    console.log(`data is of type ${typeof(data)}`);
+  }
+
+  document.getElementById('save').disabled = false;
+}
+
+function save() {
+  const output = JSON.stringify(data);
+  const a = document.createElement('a');
+  a.href = 'data:application/json,' + encodeURI(output);
+  a.target = '_blank';
+  a.download = 'data.json';
+  a.click();
+}
+
 </script>
 </html>
