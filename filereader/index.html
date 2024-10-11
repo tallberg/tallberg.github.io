@@ -59,7 +59,7 @@ function parse(text) {
   } catch {
     console.log("Failed to load data as JSON");
 
-    if (text.indexOf(/\r?\n/)!=-1) {
+    if (text.indexOf('\n')!=-1) {
       console.log('Saving rows to array');
       data = text.split(/\r?\n/);
     } else {
